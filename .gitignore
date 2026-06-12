@@ -23,6 +23,9 @@ prisma/*.db-journal
 # Local offline Postgres data dir (embedded-postgres, see scripts/local-db.mjs)
 .localdb
 
+# Project-local temp (used to keep build temp off a full system drive)
+.tmp
+
 # Vercel
 .vercel
 

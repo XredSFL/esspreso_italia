@@ -129,7 +129,7 @@ pnpm prisma db seed          # load sample data
 pnpm dev                     # dev server (http://localhost:3000, admin at /admin)
 pnpm build                   # `prisma generate && nuxt build` (Vercel build)
 pnpm preview
-pnpm lint
+pnpm lintpush
 ```
 
 Local dev uses the same Prisma Postgres connection string in `DATABASE_URL`

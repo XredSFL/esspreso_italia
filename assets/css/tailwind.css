@@ -13,8 +13,51 @@
   h4 {
     @apply font-serif text-ink;
   }
+}
 
-  a {
-    @apply text-caramelDark transition-colors;
+@layer components {
+  /* Page width wrapper */
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded bg-caramel px-5 py-2.5 font-medium text-espresso transition hover:bg-caramelDark hover:text-cream;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded border border-line bg-white px-5 py-2.5 font-medium text-ink transition hover:border-caramel hover:text-caramelDark;
+  }
+
+  /* Small pill/badge */
+  .badge {
+    @apply inline-block rounded-full bg-panel px-2.5 py-0.5 text-xs font-medium text-brown;
+  }
+
+  /* Rendered HTML (article content, product full description) */
+  .rich-text {
+    @apply leading-relaxed text-body;
+  }
+  .rich-text p {
+    @apply mb-4;
+  }
+  .rich-text h2 {
+    @apply mb-3 mt-8 font-serif text-2xl text-ink;
+  }
+  .rich-text h3 {
+    @apply mb-2 mt-6 font-serif text-xl text-ink;
+  }
+  .rich-text ul {
+    @apply mb-4 list-disc space-y-1 pl-6;
+  }
+  .rich-text ol {
+    @apply mb-4 list-decimal space-y-1 pl-6;
+  }
+  .rich-text a {
+    @apply text-caramelDark underline;
+  }
+  .rich-text strong {
+    @apply font-semibold text-ink;
   }
 }
