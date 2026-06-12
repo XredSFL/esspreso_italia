@@ -1,11 +1,7 @@
 export default defineNuxtRouteMiddleware((to) => {
-  const { isLoggedIn } = useAdminSession()
-
+  // Prototype mode: admin pages are open so the CMS can be demoed immediately.
+  // Keep the middleware in place for the later auth pass, but do not block access now.
   if (to.path === '/admin/login') {
     return
-  }
-
-  if (!isLoggedIn.value) {
-    return navigateTo('/admin/login')
   }
 })

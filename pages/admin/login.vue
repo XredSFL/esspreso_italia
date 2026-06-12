@@ -2,14 +2,16 @@
 definePageMeta({ layout: false })
 
 const { isLoggedIn, setAdminSession } = useAdminSession()
+const router = useRouter()
 
 if (isLoggedIn.value) {
   await navigateTo('/admin')
 }
 
-function loginInstant() {
+async function loginInstant() {
   setAdminSession()
-  navigateTo('/admin')
+  await nextTick()
+  window.location.assign('/admin')
 }
 
 useSeoMeta({

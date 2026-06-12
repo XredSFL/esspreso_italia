@@ -23,7 +23,7 @@ const form = reactive({
   specificationsText: '{\n  "mesin": "espresso"\n}',
   price: '',
   currency: 'IDR',
-  status: 'DRAFT' as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
+  status: 'PUBLISHED' as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
   isFeatured: false,
 })
 
@@ -126,8 +126,8 @@ useSeoMeta({ title: 'Tambah Produk — Espresso Italia' })
         <label class="block">
           <span class="mb-2 block text-sm font-medium text-body">Status</span>
           <select v-model="form.status" class="w-full rounded-xl border border-line bg-white px-4 py-3 text-ink outline-none focus:border-caramel">
-            <option value="DRAFT">Draft</option>
             <option value="PUBLISHED">Published</option>
+            <option value="DRAFT">Draft</option>
             <option value="ARCHIVED">Archived</option>
           </select>
         </label>

@@ -19,7 +19,7 @@ const form = reactive({
   excerpt: '',
   content: '<p>Tulis isi artikel di sini.</p>',
   categorySlug: '',
-  status: 'DRAFT' as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
+  status: 'PUBLISHED' as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
 })
 
 const saving = ref(false)
@@ -99,8 +99,8 @@ useSeoMeta({ title: 'Tambah Artikel — Espresso Italia' })
       <label class="block">
         <span class="mb-2 block text-sm font-medium text-body">Status</span>
         <select v-model="form.status" class="w-full rounded-xl border border-line bg-white px-4 py-3 text-ink outline-none focus:border-caramel">
-          <option value="DRAFT">Draft</option>
           <option value="PUBLISHED">Published</option>
+          <option value="DRAFT">Draft</option>
           <option value="ARCHIVED">Archived</option>
         </select>
       </label>

@@ -8,10 +8,12 @@ export function useAdminSession() {
 
   function setAdminSession() {
     session.value = '1'
+    refreshCookie(adminSessionKey)
   }
 
   function clearAdminSession() {
     session.value = null
+    refreshCookie(adminSessionKey)
   }
 
   return {
