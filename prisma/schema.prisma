@@ -1,0 +1,218 @@
+// Prisma schema — Espresso Italia (prototype)
+// Data model per CLAUDE.md §4. Provider stays `postgresql` (Prisma Postgres).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// Enums
+// ----------------------------------------------------------------------------
+
+enum Role {
+  OWNER
+  ADMIN
+  EDITOR
+}
+
+enum CategoryType {
+  PRODUCT
+  NEWS
+  CLASS
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PromoEventType {
+  PROMO
+  EVENT
+}
+
+enum HomeSectionKey {
+  HERO
+  BRANDS
+  CLIENTS
+  FLYER
+  FEATURED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+// ----------------------------------------------------------------------------
+// Models
+// ----------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  role         Role      @default(EDITOR)
+  isActive     Boolean   @default(true)
+  articles     Article[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  mimeType  String
+  sizeBytes Int
+  width     Int?
+  height    Int?
+  altText   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Back-relations (a Media may be referenced for several distinct purposes).
+  productPrimaryFor Product[]      @relation("ProductPrimaryImage")
+  productImages     ProductImage[]
+  articleCovers     Article[]      @relation("ArticleCoverImage")
+  classCovers       GelatoClass[]  @relation("ClassCoverImage")
+  promoCovers       PromoEvent[]   @relation("PromoCoverImage")
+}
+
+model Category {
+  id        String       @id @default(cuid())
+  type      CategoryType
+  name      String
+  slug      String
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  products Product[]
+  articles Article[]
+
+  @@unique([type, slug])
+}
+
+model Product {
+  id               String         @id @default(cuid())
+  sku              String?
+  name             String
+  slug             String         @unique
+  categoryId       String?
+  category         Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brand            String?
+  shortDescription String?
+  fullDescription  String?        @db.Text
+  specifications   Json           @default("{}")
+  price            Decimal?       @db.Decimal(12, 2)
+  currency         String         @default("IDR")
+  primaryImageId   String?
+  primaryImage     Media?         @relation("ProductPrimaryImage", fields: [primaryImageId], references: [id], onDelete: SetNull)
+  status           ContentStatus  @default(DRAFT)
+  isFeatured       Boolean        @default(false)
+  publishedAt      DateTime?
+  images           ProductImage[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  sortOrder Int     @default(0)
+
+  @@unique([productId, mediaId])
+}
+
+model Article {
+  id           String        @id @default(cuid())
+  title        String
+  slug         String        @unique
+  excerpt      String?
+  content      String        @db.Text
+  coverImageId String?
+  coverImage   Media?        @relation("ArticleCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  categoryId   String?
+  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  authorId     String?
+  author       User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  status       ContentStatus @default(DRAFT)
+  publishedAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model GelatoClass {
+  id           String         @id @default(cuid())
+  title        String
+  slug         String         @unique
+  description  String?
+  content      String?        @db.Text
+  coverImageId String?
+  coverImage   Media?         @relation("ClassCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  instructor   String?
+  level        String?
+  price        Decimal?       @db.Decimal(12, 2)
+  status       ContentStatus  @default(DRAFT)
+  sessions     ClassSession[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model ClassSession {
+  id            String        @id @default(cuid())
+  classId       String
+  class         GelatoClass   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  startDatetime DateTime
+  endDatetime   DateTime?
+  location      String?
+  capacity      Int           @default(0)
+  status        SessionStatus @default(SCHEDULED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model PromoEvent {
+  id           String         @id @default(cuid())
+  title        String
+  slug         String         @unique
+  type         PromoEventType
+  content      String?        @db.Text
+  coverImageId String?
+  coverImage   Media?         @relation("PromoCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  startDate    DateTime?
+  endDate      DateTime?
+  status       ContentStatus  @default(DRAFT)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model HomeSection {
+  id        String         @id @default(cuid())
+  key       HomeSectionKey @unique
+  payload   Json           @default("{}")
+  sortOrder Int            @default(0)
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

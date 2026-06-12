@@ -1,0 +1,33 @@
+# Dependencies
+node_modules
+
+# Nuxt / Nitro build output
+.nuxt
+.output
+.data
+dist
+
+# Logs
+*.log
+logs
+
+# Env files (never commit secrets) — but keep the example
+.env
+.env.*
+!.env.example
+
+# Local Prisma dev database
+prisma/*.db
+prisma/*.db-journal
+
+# Local offline Postgres data dir (embedded-postgres, see scripts/local-db.mjs)
+.localdb
+
+# Vercel
+.vercel
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
