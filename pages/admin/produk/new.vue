@@ -14,13 +14,21 @@ const categories = await useFetch('/api/categories', {
 
 const form = reactive({
   name: '',
-  slug: '',
-  sku: '',
+  photoUrl: '',
   brand: '',
   categorySlug: '',
   shortDescription: '',
   fullDescription: '',
-  specificationsText: '{\n  "mesin": "espresso"\n}',
+  specifications: {
+    Daya: '',
+    'Gas Pendingin': '',
+    'Kapasitas Maksimal Adonan': '',
+    'Waktu Persiapan': '',
+    'Produksi Maksimal per Jam': '',
+    'Produksi Maksimal per Hari': '',
+    'Dimensi (l x d x t)': '',
+    Berat: '',
+  } as Record<string, string>,
   price: '',
   currency: 'IDR',
   status: 'PUBLISHED' as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
@@ -30,15 +38,19 @@ const form = reactive({
 const isSaving = ref(false)
 const errorMessage = ref('')
 
-function syncSlug() {
-  if (!form.slug) {
-    form.slug = form.name
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-  }
+const specificationRows = computed(() => [
+  'Daya',
+  'Gas Pendingin',
+  'Kapasitas Maksimal Adonan',
+  'Waktu Persiapan',
+  'Produksi Maksimal per Jam',
+  'Produksi Maksimal per Hari',
+  'Dimensi (l x d x t)',
+  'Berat',
+].map((label) => ({ label, value: form.specifications[label] || '' })))
+
+function setSpecification(label: string, value: string) {
+  form.specifications[label] = value
 }
 
 async function saveProduct() {
@@ -48,7 +60,19 @@ async function saveProduct() {
   try {
     const result = await $fetch<{ slug: string }>('/api/admin/products', {
       method: 'POST',
-      body: form,
+      body: {
+        name: form.name,
+        photoUrl: form.photoUrl,
+        brand: form.brand,
+        categorySlug: form.categorySlug,
+        shortDescription: form.shortDescription,
+        fullDescription: form.fullDescription,
+        specifications: form.specifications,
+        price: form.price,
+        currency: form.currency,
+        status: form.status,
+        isFeatured: form.isFeatured,
+      },
     })
 
     await router.push(`/admin/produk/${result.slug}`)
@@ -77,17 +101,12 @@ useSeoMeta({ title: 'Tambah Produk — Espresso Italia' })
       <div class="mt-6 grid gap-4 md:grid-cols-2">
         <label class="block">
           <span class="mb-2 block text-sm font-medium text-body">Nama Produk</span>
-          <input v-model="form.name" type="text" class="w-full rounded-xl border border-line bg-white px-4 py-3 text-ink outline-none focus:border-caramel" @blur="syncSlug">
+          <input v-model="form.name" type="text" class="w-full rounded-xl border border-line bg-white px-4 py-3 text-ink outline-none focus:border-caramel">
         </label>
 
         <label class="block">
-          <span class="mb-2 block text-sm font-medium text-body">Slug</span>
-          <input v-model="form.slug" type="text" class="w-full rounded-xl border border-line bg-white px-4 py-3 text-ink outline-none focus:border-caramel">
-        </label>
-
-        <label class="block">
-          <span class="mb-2 block text-sm font-medium text-body">SKU</span>
-          <input v-model="form.sku" type="text" class="w-full rounded-xl border border-line bg-white px-4 py-3 text-ink outline-none focus:border-caramel">
+          <span class="mb-2 block text-sm font-medium text-body">Foto Produk</span>
+          <input v-model="form.photoUrl" type="url" placeholder="Tempel URL foto / Vercel Blob" class="w-full rounded-xl border border-line bg-white px-4 py-3 text-ink outline-none focus:border-caramel">
         </label>
 
         <label class="block">
@@ -119,8 +138,30 @@ useSeoMeta({ title: 'Tambah Produk — Espresso Italia' })
         </label>
 
         <label class="block md:col-span-2">
-          <span class="mb-2 block text-sm font-medium text-body">Specifications JSON</span>
-          <textarea v-model="form.specificationsText" rows="8" class="w-full rounded-xl border border-line bg-white px-4 py-3 font-mono text-sm text-ink outline-none focus:border-caramel"></textarea>
+          <span class="mb-2 block text-sm font-medium text-body">Spesifikasi</span>
+          <div class="overflow-hidden rounded-2xl border border-line">
+            <table class="min-w-full divide-y divide-line text-sm">
+              <thead class="bg-panel/50 text-left text-xs uppercase tracking-[0.16em] text-muted">
+                <tr>
+                  <th class="px-4 py-3">Spesifikasi</th>
+                  <th class="px-4 py-3">Detail</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-line bg-white">
+                <tr v-for="row in specificationRows" :key="row.label">
+                  <td class="px-4 py-3 font-medium text-ink">{{ row.label }}</td>
+                  <td class="px-4 py-3">
+                    <input
+                      :value="row.value"
+                      type="text"
+                      class="w-full rounded-lg border border-line bg-white px-3 py-2 text-ink outline-none focus:border-caramel"
+                      @input="setSpecification(row.label, ($event.target as HTMLInputElement).value)"
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </label>
 
         <label class="block">
