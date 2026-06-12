@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { z } from 'zod'
+import { createSlug } from '~/server/utils/slug'
 
 const payloadSchema = z.object({
   name: z.string().trim().min(2),
@@ -27,6 +28,19 @@ export default defineEventHandler(async (event) => {
     : null
 
   const slug = body.slug || createSlug(body.name)
+  let specifications: Record<string, unknown> = {}
+
+  if (body.specificationsText) {
+    try {
+      const parsed = JSON.parse(body.specificationsText)
+      specifications = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+    } catch {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Format specifications JSON tidak valid',
+      })
+    }
+  }
 
   const product = await prisma.product.create({
     data: {
@@ -37,7 +51,7 @@ export default defineEventHandler(async (event) => {
       categoryId: category?.id,
       shortDescription: body.shortDescription || null,
       fullDescription: body.fullDescription || null,
-      specifications: body.specificationsText ? JSON.parse(body.specificationsText) : {},
+      specifications,
       price: body.price ? new Prisma.Decimal(body.price) : null,
       currency: body.currency || 'IDR',
       status: body.status,

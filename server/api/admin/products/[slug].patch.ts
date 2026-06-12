@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { z } from 'zod'
+import { createSlug } from '~/server/utils/slug'
 
 const payloadSchema = z.object({
   name: z.string().trim().min(2),
@@ -40,7 +41,21 @@ export default defineEventHandler(async (event) => {
       categoryId: category?.id,
       shortDescription: body.shortDescription || null,
       fullDescription: body.fullDescription || null,
-      specifications: body.specificationsText ? JSON.parse(body.specificationsText) : {},
+      specifications: (() => {
+        if (!body.specificationsText) {
+          return {}
+        }
+
+        try {
+          const parsed = JSON.parse(body.specificationsText)
+          return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+        } catch {
+          throw createError({
+            statusCode: 400,
+            statusMessage: 'Format specifications JSON tidak valid',
+          })
+        }
+      })(),
       price: body.price ? new Prisma.Decimal(body.price) : null,
       currency: body.currency || 'IDR',
       status: body.status,
