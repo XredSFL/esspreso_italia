@@ -31,39 +31,55 @@ export default defineEventHandler(async (event) => {
       })
     : null
 
-  const updated = await prisma.product.update({
-    where: { slug },
-    data: {
-      name: body.name,
-      slug: body.slug || createSlug(body.name),
-      sku: body.sku || null,
-      brand: body.brand || null,
-      categoryId: category?.id,
-      shortDescription: body.shortDescription || null,
-      fullDescription: body.fullDescription || null,
-      specifications: (() => {
-        if (!body.specificationsText) {
-          return {}
-        }
+  try {
+    const updated = await prisma.product.update({
+      where: { slug },
+      data: {
+        name: body.name,
+        slug: body.slug || createSlug(body.name),
+        sku: body.sku || null,
+        brand: body.brand || null,
+        categoryId: category?.id,
+        shortDescription: body.shortDescription || null,
+        fullDescription: body.fullDescription || null,
+        specifications: (() => {
+          if (!body.specificationsText) {
+            return {}
+          }
 
-        try {
-          const parsed = JSON.parse(body.specificationsText)
-          return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
-        } catch {
-          throw createError({
-            statusCode: 400,
-            statusMessage: 'Format specifications JSON tidak valid',
-          })
-        }
-      })(),
-      price: body.price ? new Prisma.Decimal(body.price) : null,
-      currency: body.currency || 'IDR',
-      status: body.status,
-      isFeatured: body.isFeatured,
-      publishedAt: body.status === 'PUBLISHED' ? new Date() : null,
-    },
-    select: { slug: true },
-  })
+          try {
+            const parsed = JSON.parse(body.specificationsText)
+            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+          } catch {
+            throw createError({
+              statusCode: 400,
+              statusMessage: 'Format specifications JSON tidak valid',
+            })
+          }
+        })(),
+        price: body.price ? new Prisma.Decimal(body.price) : null,
+        currency: body.currency || 'IDR',
+        status: body.status,
+        isFeatured: body.isFeatured,
+        publishedAt: body.status === 'PUBLISHED' ? new Date() : null,
+      },
+      select: { slug: true },
+    })
 
-  return updated
+    return updated
+  } catch (error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === 'P2002'
+    ) {
+      throw createError({
+        statusCode: 409,
+        statusMessage: 'Slug produk sudah dipakai, ganti slug atau nama produk.',
+      })
+    }
+
+    throw error
+  }
 })

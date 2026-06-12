@@ -70,6 +70,32 @@ pnpm dev
 3. Build command is `prisma generate && nuxt build` (already in `package.json`).
 4. Apply the schema to the cloud DB with `prisma migrate deploy` (once real models exist).
 
+### Production migration checklist
+
+Use this order when the app is deployed to Vercel or when the production database is new:
+
+```bash
+# 1. Ensure the Vercel project has DATABASE_URL, BLOB_READ_WRITE_TOKEN, and NUXT_SESSION_PASSWORD.
+# 2. Apply Prisma migrations to the production database.
+pnpm prisma:deploy
+
+# 3. If you need seed data for the demo environment, run the seed afterwards.
+pnpm prisma:seed
+```
+
+Notes:
+
+- `pnpm prisma:deploy` runs `prisma migrate deploy`, which is the correct command for production.
+- `pnpm prisma:migrate` is for local development only and should not be used against production.
+- If you see a 500 from an admin POST endpoint in Vercel, check the Vercel function logs first, then verify the production database has the latest migrations applied.
+
+### If production still fails
+
+1. Confirm `DATABASE_URL` points at the same database you migrated.
+2. Confirm the `Product`, `Article`, and related tables exist in that database.
+3. Look for Prisma errors such as `P2002` (duplicate slug) or missing-table errors in Vercel logs.
+4. Re-run `pnpm prisma:deploy` after fixing the environment variables.
+
 ## Project scripts
 
 | Script           | Does                                  |

@@ -19,18 +19,29 @@ export default defineEventHandler(async (event) => {
       })
     : null
 
-  const article = await prisma.article.create({
-    data: {
-      title: body.title,
-      slug: body.slug,
-      excerpt: body.excerpt || null,
-      content: body.content,
-      categoryId: category?.id ?? null,
-      status: body.status,
-      publishedAt: body.status === 'PUBLISHED' ? new Date() : null,
-    },
-    select: { slug: true },
-  })
+  try {
+    const article = await prisma.article.create({
+      data: {
+        title: body.title,
+        slug: body.slug,
+        excerpt: body.excerpt || null,
+        content: body.content,
+        categoryId: category?.id ?? null,
+        status: body.status,
+        publishedAt: body.status === 'PUBLISHED' ? new Date() : null,
+      },
+      select: { slug: true },
+    })
 
-  return article
+    return article
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+      throw createError({
+        statusCode: 409,
+        statusMessage: 'Slug artikel sudah dipakai, ganti slug atau judul artikel.',
+      })
+    }
+
+    throw error
+  }
 })

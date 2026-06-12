@@ -42,24 +42,40 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const product = await prisma.product.create({
-    data: {
-      name: body.name,
-      slug,
-      sku: body.sku || null,
-      brand: body.brand || null,
-      categoryId: category?.id,
-      shortDescription: body.shortDescription || null,
-      fullDescription: body.fullDescription || null,
-      specifications,
-      price: body.price ? new Prisma.Decimal(body.price) : null,
-      currency: body.currency || 'IDR',
-      status: body.status,
-      isFeatured: body.isFeatured,
-      publishedAt: body.status === 'PUBLISHED' ? new Date() : null,
-    },
-    select: { slug: true },
-  })
+  try {
+    const product = await prisma.product.create({
+      data: {
+        name: body.name,
+        slug,
+        sku: body.sku || null,
+        brand: body.brand || null,
+        categoryId: category?.id,
+        shortDescription: body.shortDescription || null,
+        fullDescription: body.fullDescription || null,
+        specifications,
+        price: body.price ? new Prisma.Decimal(body.price) : null,
+        currency: body.currency || 'IDR',
+        status: body.status,
+        isFeatured: body.isFeatured,
+        publishedAt: body.status === 'PUBLISHED' ? new Date() : null,
+      },
+      select: { slug: true },
+    })
 
-  return product
+    return product
+  } catch (error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === 'P2002'
+    ) {
+      throw createError({
+        statusCode: 409,
+        statusMessage: 'Slug produk sudah dipakai, ganti slug atau nama produk.',
+      })
+    }
+
+    throw error
+  }
 })
